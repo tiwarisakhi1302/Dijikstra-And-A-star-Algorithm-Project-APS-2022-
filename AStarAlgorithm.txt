@@ -1,0 +1,21 @@
+A* Algorithm is a search Algorithm.
+There is space of possiblities and you wanna for
+a particular element.
+There are many solution possible but you wanna have a 
+optimum solution of all possible solutions.
+This algorithm is applied to path finding type
+problem.
+Shortest Path to the destination(Fatest Path).
+Dijkstra is not super efficient.
+A* star is similar to Dijkstra
+But it uses a concept of heuristics(educated Guessing)
+Intead of checking of every single route.
+Here can we make a guess.
+So by using this we stop looking to most of the possiblities.
+This make a algorithm much faster.
+
+f(n) = g(n) + h(n)
+
+h(n): heuristics
+f(n): cost function
+g(n):actual cost from beginning to end
