@@ -1,0 +1,16 @@
+Dijkstra Algorithm
+
+1------2-----5
+\      |    /
+ \     |   /
+  \    |  /
+   4---3-/
+
+priority queue --- minimum priority queue
+storing in the order of minimum edge weight
+dis, node
+
+Every thing is infinity at first.
+
+
+
