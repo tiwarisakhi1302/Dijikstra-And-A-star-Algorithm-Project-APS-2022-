@@ -1,4 +1,7 @@
 #include<bits/stdc++.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <windows.h>
 #define f first
 #define s second
 
@@ -150,6 +153,8 @@ class GraphAlgorithms{
     Map obj;
     pair<int, int> source_coordinates;
     vector<des> des_coordinates;
+    map<pair<int, int>, pair<int, int>> parent_cost;
+    map<pair<int, int>, pair<int, int>> parent_time;
     void print_grid(){
         cout<<"\n\n\t\t\t\tCity Map"<<endl<<endl;
         cout<<"\t-----------------------------------------------------------"<<endl;
@@ -163,6 +168,7 @@ class GraphAlgorithms{
         cout<<"\t-----------------------------------------------------------"<<endl;
     }
     void find_city(int i, int j, vector<vector<bool>> vis){
+        //Here in this we have used BFS
         map<string, int> _map;
         for(int k=0; k<d_size; k++){
             _map.insert({destination[k], k+1});
@@ -192,6 +198,80 @@ class GraphAlgorithms{
             }
         }
     }
+    //Dijkstra Algorithm
+    void DijkstraAlgorithmEfficientCost(pair<int, int> source, pair<int, int> destin){
+        int costTo[canvas_size][canvas_size]; //source -> different position -> cost
+        int timeTo[canvas_size][canvas_size]; //source -> different position -> cost
+        int vis[canvas_size][canvas_size];
+        for(int i=0; i<canvas_size; i++){
+            for(int j=0; j<canvas_size; j++){
+                costTo[i][j]=INT_MAX;
+                timeTo[i][j]=INT_MAX;
+                vis[i][j]=false;
+                parent_cost[{i, j}]={-1, -1};
+            }
+        }
+        costTo[source.f][source.s]=0;
+        timeTo[source.f][source.s]=0;
+        priority_queue<pair<int, pair<int, int>>, vector<pair<int, pair<int, int>>>, greater<pair<int, pair<int, int>>>> minh;
+        minh.push({0, {source.f, source.s}});
+        while(!minh.empty()){
+            int prev_cost=minh.top().first;
+            int prev_x=minh.top().second.first;
+            int prev_y=minh.top().second.second;
+            vis[prev_x][prev_y]=true;
+            minh.pop();
+            for(auto itr : obj.edges[{prev_x, prev_y}]){
+                pair<int, int> next=itr.p;
+                int nextCost=itr.cost;
+                int nextTime=itr.time;
+                if(costTo[itr.p.f][itr.p.s]>costTo[prev_x][prev_y]+nextCost && !vis[itr.p.f][itr.p.s]){
+                    costTo[next.f][next.s]=costTo[prev_x][prev_y]+nextCost;
+                    timeTo[next.f][next.s]=timeTo[prev_x][prev_y]+nextTime;
+                    minh.push({costTo[next.f][next.s],next});
+                    parent_cost[next]={prev_x, prev_y};
+                }
+            }
+        }
+        cout<<obj.grid[source.f][source.s]<<" "<<obj.grid[destin.f][destin.s]<<"  "<<costTo[destin.f][destin.s]<<" "<<timeTo[destin.f][destin.s]<<endl;
+    }
+    void DijkstraAlgorithmEfficientTime(pair<int, int> source, pair<int, int> destin){
+        int costTo[canvas_size][canvas_size]; //source -> different position -> cost
+        int timeTo[canvas_size][canvas_size]; //source -> different position -> cost
+        int vis[canvas_size][canvas_size];
+        for(int i=0; i<canvas_size; i++){
+            for(int j=0; j<canvas_size; j++){
+                costTo[i][j]=INT_MAX;
+                timeTo[i][j]=INT_MAX;
+                vis[i][j]=false;
+                parent_time[{i, j}]={-1, -1};
+            }
+        }
+        costTo[source.f][source.s]=0;
+        timeTo[source.f][source.s]=0;
+        priority_queue<pair<int, pair<int, int>>, vector<pair<int, pair<int, int>>>, greater<pair<int, pair<int, int>>>> minh;
+        minh.push({0, {source.f, source.s}});
+        while(!minh.empty()){
+            int prev_time=minh.top().first;
+            int prev_x=minh.top().second.first;
+            int prev_y=minh.top().second.second;
+            minh.pop();
+            for(auto itr : obj.edges[{prev_x, prev_y}]){
+                pair<int, int> next=itr.p;
+                int nextCost=itr.cost;
+                int nextTime=itr.time;
+                vis[prev_x][prev_y]=true;
+                if(timeTo[itr.p.f][itr.p.s]>timeTo[prev_x][prev_y]+nextTime && !vis[next.f][next.s]){
+                    costTo[next.f][next.s]=costTo[prev_x][prev_y]+nextCost;
+                    timeTo[next.f][next.s]=timeTo[prev_x][prev_y]+nextTime;
+                    minh.push({timeTo[next.f][next.s],next});
+                    parent_time[next]={prev_x, prev_y};
+                }
+            }
+        }
+        cout<<obj.grid[source.f][source.s]<<" "<<obj.grid[destin.f][destin.s]<<"  "<<costTo[destin.f][destin.s]<<" "<<timeTo[destin.f][destin.s]<<endl;
+    }
+    //A* Star Algorithm
 
 public:
     GraphAlgorithms(string src, string *des, int des_size, Map ob){
@@ -209,36 +289,88 @@ public:
             cout<<des_coordinates[i].name<<"  "<<des_coordinates[i].visit_no<<"    "<<des_coordinates[i].coordinates.f<<" "<<des_coordinates[i].coordinates.s<<endl;
         }
     }
-    //Dijkstra Algorithm
-    void DijkstraAlgorithm(){
-        cout<<"Dijkstra Algorithm"<<endl;
-        int costTo[canvas_size][canvas_size];
+    static bool custom_sort(des d1, des d2){
+        return d1.visit_no<d2.visit_no;
+    }
+    void callDijkstra(){
+        pair<int, int> s=source_coordinates;
+        string dijks[canvas_size][canvas_size];
         for(int i=0; i<canvas_size; i++){
             for(int j=0; j<canvas_size; j++){
-                costTo[i][j]=INT_MAX;
+                dijks[i][j]=obj.grid[i][j];
             }
         }
-        costTo[source_coordinates.f][source_coordinates.s]=0;
-        priority_queue<pair<int, pair<int, int>>, vector<pair<int, pair<int, int>>>, greater<pair<int, pair<int, int>>>> minh;
-        minh.push({0, {source_coordinates.f, source_coordinates.s}});
-        while(!minh.empty()){
-            int prev_cost=minh.top().first;
-            int prev_x=minh.top().second.first;
-            int prev_y=minh.top().second.second;
-            minh.pop();
-            for(auto itr : obj.edges[{prev_x, prev_y}]){
-                pair<int, int> next=itr.p;
-                int nextCost=itr.cost;
-                if(costTo[itr.p.f][itr.p.s]>costTo[prev_x][prev_y]+nextCost){
-                    costTo[next.f][next.s]=costTo[prev_x][prev_y]+nextCost;
-
-                    minh.push({costTo[next.f][next.s],next});
-                }
-            }
-        }
+        cout<<"-----------------------------------------------------------"<<endl;
+        cout<<"Dijkstra Algorithm Efficient Cost : "<<endl;
+        sort(des_coordinates.begin(), des_coordinates.end(), custom_sort);
         for(int i=0; i<des_coordinates.size(); i++){
-            cout<<des_coordinates[i].name<<"  "<<costTo[des_coordinates[i].coordinates.f][des_coordinates[i].coordinates.s]<<endl;
+            DijkstraAlgorithmEfficientCost(s, des_coordinates[i].coordinates);
+            vector<pair<int, int>> path;
+            pair<int, int> p=des_coordinates[i].coordinates;
+            while(p.f!=-1 && p.s!=-1){
+                path.push_back({p.f, p.s});
+                p=parent_cost[{p.f, p.s}];
+            }
+            reverse(path.begin(), path.end());
+            cout<<"Path : "<<endl;
+            for(int i=0; i<path.size(); i++){
+                if(i!=0 && i!=path.size()-1)
+                dijks[path[i].f][path[i].s]="@";
+                cout<<"{"<<path[i].f<<","<<path[i].s<<"}"<<" --> ";
+            }
+            cout<<endl<<endl;
+             cout<<"\n\n\t\t\t\tCity Map"<<endl<<endl;
+            cout<<"\t-----------------------------------------------------------"<<endl;
+            for(int i=0; i<canvas_size; i++){
+                cout<<"\t";
+                for(int j=0; j<canvas_size; j++){
+                    cout<<dijks[i][j]<<"  ";
+                }
+                cout<<endl<<endl;
+            }
+            cout<<"\t-----------------------------------------------------------"<<endl;
+            s=des_coordinates[i].coordinates;
         }
+
+
+
+        for(int i=0; i<canvas_size; i++){
+            for(int j=0; j<canvas_size; j++){
+                dijks[i][j]=obj.grid[i][j];
+            }
+        }
+        s=source_coordinates;
+        cout<<endl<<endl<<"-----------------------------------------------------------"<<endl;
+        cout<<"Dijkstra Algorithm Efficient Time : "<<endl;
+        for(int i=0; i<des_coordinates.size(); i++){
+            DijkstraAlgorithmEfficientTime(s, des_coordinates[i].coordinates);
+            vector<pair<int, int>> path;
+            pair<int, int> p=des_coordinates[i].coordinates;
+            while(p.f!=-1 && p.s!=-1){
+                path.push_back({p.f, p.s});
+                p=parent_time[{p.f, p.s}];
+            }
+            reverse(path.begin(), path.end());
+            cout<<"Path : "<<endl;
+            for(int i=0; i<path.size(); i++){
+                if(i!=0 && i!=path.size()-1)
+                dijks[path[i].f][path[i].s]="@";
+                cout<<"{"<<path[i].f<<","<<path[i].s<<"}"<<" --> ";
+            }
+            cout<<endl<<endl;
+             cout<<"\n\n\t\t\t\tCity Map"<<endl<<endl;
+            cout<<"\t-----------------------------------------------------------"<<endl;
+            for(int i=0; i<canvas_size; i++){
+                cout<<"\t";
+                for(int j=0; j<canvas_size; j++){
+                    cout<<dijks[i][j]<<"  ";
+                }
+                cout<<endl<<endl;
+            }
+            cout<<"\t-----------------------------------------------------------"<<endl;
+            s=des_coordinates[i].coordinates;
+        }
+        cout<<endl<<endl<<"-----------------------------------------------------------"<<endl;
     }
 };
 
@@ -287,10 +419,11 @@ void user_interface(Map obj){
 //  Graph Algorithm Started
     GraphAlgorithms gph(curr_location, destinations, no_of_destinations, obj);
     gph.find_in_map();
-    gph.DijkstraAlgorithm();
+    gph.callDijkstra();
 }
 int main()
 {
+    system("color 90");
     Map obj;
     obj.create_map();
     obj.print_map();
