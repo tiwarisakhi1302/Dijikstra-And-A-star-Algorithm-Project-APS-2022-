@@ -470,7 +470,7 @@ class GraphAlgorithms{
                         if(CostEfficient)
                         gNew = cellDetails[i][j].g + itr.cost;
                         else{
-                        gNew = cellDetails[i][j].g + itr.cost;
+                        gNew = cellDetails[i][j].g + itr.time;
                         }
                         hNew = calculateHValue (itr.p.f, itr.p.s, dest);
                         fNew = gNew + hNew;
@@ -625,6 +625,7 @@ public:
         for(int i=0; i<des_coordinates.size(); i++){
             pair<int, int> dest = des_coordinates[i].coordinates;
             aStarSearch(src, dest, true);
+            src=dest;
         }
         cout<<endl<<"-----------------------------------------------------------"<<endl;
         cout<<"A star Algorithm Time Efficient"<<endl;
@@ -633,6 +634,7 @@ public:
         for(int i=0; i<des_coordinates.size(); i++){
             pair<int, int> dest = des_coordinates[i].coordinates;
             aStarSearch(src, dest, false);
+            src=dest;
         }
     }
 };
@@ -690,7 +692,7 @@ void user_interface(Map obj){
 }
 int main()
 {
-    system("color 90");
+    system("color C0");
     Map obj;
     obj.create_map();
     obj.print_map();
