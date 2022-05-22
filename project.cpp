@@ -625,6 +625,7 @@ public:
         for(int i=0; i<des_coordinates.size(); i++){
             pair<int, int> dest = des_coordinates[i].coordinates;
             aStarSearch(src, dest, true);
+            src=dest;
         }
         cout<<endl<<"-----------------------------------------------------------"<<endl;
         cout<<"A star Algorithm Time Efficient"<<endl;
@@ -633,6 +634,7 @@ public:
         for(int i=0; i<des_coordinates.size(); i++){
             pair<int, int> dest = des_coordinates[i].coordinates;
             aStarSearch(src, dest, false);
+            src=dest;
         }
     }
 };
