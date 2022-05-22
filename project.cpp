@@ -470,7 +470,7 @@ class GraphAlgorithms{
                         if(CostEfficient)
                         gNew = cellDetails[i][j].g + itr.cost;
                         else{
-                        gNew = cellDetails[i][j].g + itr.cost;
+                        gNew = cellDetails[i][j].g + itr.time;
                         }
                         hNew = calculateHValue (itr.p.f, itr.p.s, dest);
                         fNew = gNew + hNew;
@@ -690,7 +690,7 @@ void user_interface(Map obj){
 }
 int main()
 {
-    system("color 90");
+    system("color C0");
     Map obj;
     obj.create_map();
     obj.print_map();
