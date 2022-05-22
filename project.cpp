@@ -32,6 +32,14 @@ struct des{
 
 };
 
+struct Astar{
+	// Row and Column index of its parent
+	// Note that 0 <= i <= ROW-1 & 0 <= j <= COL-1
+	int parent_i, parent_j;
+	// f = g + h
+	double f, g, h;
+};
+
 class Map{
 public:
     string grid[canvas_size][canvas_size];
@@ -233,7 +241,9 @@ class GraphAlgorithms{
                 }
             }
         }
-        cout<<obj.grid[source.f][source.s]<<" "<<obj.grid[destin.f][destin.s]<<"  "<<costTo[destin.f][destin.s]<<" "<<timeTo[destin.f][destin.s]<<endl;
+        cout<<endl<<endl<<"From "<<obj.cities_map[obj.grid[source.f][source.s]]<<" To "<<obj.cities_map[obj.grid[destin.f][destin.s]]<<endl;
+        cout<<endl<<"Total Cost : "<<costTo[destin.f][destin.s]<<endl;
+        cout<<"Total Time : "<<timeTo[destin.f][destin.s]<<endl;
     }
     void DijkstraAlgorithmEfficientTime(pair<int, int> source, pair<int, int> destin){
         int costTo[canvas_size][canvas_size]; //source -> different position -> cost
@@ -269,9 +279,229 @@ class GraphAlgorithms{
                 }
             }
         }
-        cout<<obj.grid[source.f][source.s]<<" "<<obj.grid[destin.f][destin.s]<<"  "<<costTo[destin.f][destin.s]<<" "<<timeTo[destin.f][destin.s]<<endl;
+        cout<<endl<<endl<<"From "<<obj.cities_map[obj.grid[source.f][source.s]]<<" To "<<obj.cities_map[obj.grid[destin.f][destin.s]]<<endl;
+        cout<<endl<<"Total Cost : "<<costTo[destin.f][destin.s]<<endl;
+        cout<<"Total Time : "<<timeTo[destin.f][destin.s]<<endl;
     }
     //A* Star Algorithm
+
+    double calculateHValue(int row, int col, pair<int, int> dest)
+    {
+        // Return using the distance formula
+        return ((double) ( abs(row-dest.first) + abs(col-dest.second) ) );
+    // 	return ((double)sqrt ((row-dest.first)*(row-dest.first)
+                    // 		+ (col-dest.second)*(col-dest.second)));
+    }
+    // A Utility Function to trace the path from the source
+    // to destination
+    void tracePath(Astar cellDetails[][canvas_size], pair<int, int> dest, pair<int, int> src)
+    {
+        cout<<endl<<"From "<<obj.cities_map[obj.grid[src.f][src.s]]<<" To "<<obj.cities_map[obj.grid[dest.f][dest.s]]<<endl;
+        int total_cost=0;
+        int total_time=0;
+        cout<<"\nThe Path is "<<endl;
+        int row = dest.f;
+        int col = dest.s;
+
+        int hops=0;
+        stack<pair<int, pair<int, int>>> Path;
+
+        while (!(cellDetails[row][col].parent_i == row
+                && cellDetails[row][col].parent_j == col ))
+        {
+            Path.push (make_pair(cellDetails[row][col].g, make_pair (row, col) ));
+            int temp_row = cellDetails[row][col].parent_i;
+            int temp_col = cellDetails[row][col].parent_j;
+            row = temp_row;
+            col = temp_col;
+        }
+
+        Path.push(make_pair(cellDetails[row][col].g, make_pair (row, col) ));
+        pair<int, int> s=src;
+        while (!Path.empty())
+        {
+            hops++;
+            pair<int, pair<int, int>> p = Path.top();
+            for(auto itr : obj.edges[s]){
+                if(itr.p==p.s){
+                    total_cost+=itr.cost;
+                    total_time+=itr.time;
+                }
+            }
+            s=p.s;
+            Path.pop();
+            cout<<"->("<<p.s.f<<","<<p.s.s<<")";
+        }
+        cout<<endl<<"Total Cost : "<<total_cost<<endl;
+        cout<<"Total Time : "<<total_time<<endl;
+//        cout<<endl<<"No of visited Places : "<<hops-1<<endl;
+        return;
+    }
+    // A Utility Function to check whether destination cell has
+    // been reached or not
+    bool isDestination(int row, int col, pair<int, int> dest)
+    {
+        if (row == dest.first && col == dest.second)
+            return (true);
+        else
+            return (false);
+    }
+    // template <typename T>
+    class comp_f{
+        public:
+        int operator() (const pair<int, pair<int, int>>& p1, const pair<int, pair<int, int>>& p2){
+            return p1.first > p2.first;
+        }
+    };
+    // A Utility Function to check whether given cell (row, col)
+    // is a valid cell or not.
+    bool isValid(int row, int col)
+    {
+        // Returns true if row number and column number
+        // is in range
+        return (row >= 0) && (row < canvas_size) &&
+            (col >= 0) && (col < canvas_size) && obj.grid[row][col]!="O";
+    }
+
+    // A Function to find the shortest path between
+    // a given source cell to a destination cell according
+    // to A* Search Algorithm
+    void aStarSearch(pair<int, int> src, pair<int, int> dest, bool CostEfficient)
+    {
+        // If the source is out of range
+        if (isValid (src.first, src.second) == false || isValid (dest.first, dest.second) == false)
+        {
+            cout<<"source or dest is invalid"<<endl;
+            return;
+        }
+
+        if (isDestination(src.first, src.second, dest) == true)
+        {
+            cout<<"We are already at the destination\n";
+            return;
+        }
+
+        // Create a viisted array and initialise it to false which means
+        // that no cell has been included yet
+        // This visited array is implemented as a boolean 2D array
+        bool visited[canvas_size][canvas_size];
+        for(int i=0; i<canvas_size; i++){
+            for(int j=0; j<canvas_size; j++){
+                visited[i][j]=0;
+            }
+        }
+
+        // Declare a 2D array of structure to hold the details of that cell
+        Astar cellDetails[canvas_size][canvas_size];
+
+        int i, j;
+
+        for (i=0; i<canvas_size; i++)
+        {
+            for (j=0; j<canvas_size; j++)
+            {
+                cellDetails[i][j].f = FLT_MAX;
+                cellDetails[i][j].g = FLT_MAX;
+                cellDetails[i][j].h = FLT_MAX;
+                cellDetails[i][j].parent_i = -1;
+                cellDetails[i][j].parent_j = -1;
+            }
+        }
+
+        // Initialising the parameters of the starting node
+        i = src.first, j = src.second;
+        cellDetails[i][j].f = 0.0;
+        cellDetails[i][j].g = 0.0;
+        cellDetails[i][j].h = 0.0;
+        cellDetails[i][j].parent_i = i;
+        cellDetails[i][j].parent_j = j;
+        /*
+        Create a minHeap having information as <f, <i, j>>
+        where f = g + h,
+        and i, j are the row and column index of that cell
+        This open list is implenented as a set of pair of pair.*/
+    // 	set<pair<int, pair<int, int>>> openList;
+        priority_queue <pair<int, pair<int, int>>, vector<pair<int, pair<int, int>>>, comp_f> minHeap;
+
+        // Push the starting cell to the minHeap and set its
+        // 'f' as 0
+        minHeap.push(make_pair (0.0, make_pair (i, j)));
+
+        // We set this boolean value as false as initially
+        // the destination is not reached.
+        bool foundDest = false;
+
+
+        while (!minHeap.empty())
+        {
+            pair<int, pair<int, int>> p = minHeap.top();
+            minHeap.pop();
+
+            // Add this vertex to the closed list
+            i = p.second.first;
+            j = p.second.second;
+            visited[i][j] = true;
+
+            // To store the 'g', 'h' and 'f' of the 4 successors
+            double gNew, hNew, fNew;
+            int vi, vj;
+
+            for(auto itr : obj.edges[{i, j}]){
+
+                pair<int, int> pr=itr.p;
+
+                if (isValid(itr.p.f, itr.p.s) == true)
+                {
+                    // If the destination cell is the same as the current successor
+                    if (isDestination(itr.p.f, itr.p.s, dest) == true)
+                    {
+                        // Set the Parent of the destination cell
+                        cellDetails[itr.p.f][itr.p.s].parent_i = i;
+                        cellDetails[itr.p.f][itr.p.s].parent_j = j;
+                        //cout<<"The destination cell is found\n";
+                        tracePath (cellDetails, dest, src);
+                        foundDest = true;
+                        return;
+                    }
+                    // If the successor is nit visited
+                    else if (!visited[itr.p.f][itr.p.s])
+                    {
+                        visited[itr.p.f][itr.p.s]=true;
+                        if(CostEfficient)
+                        gNew = cellDetails[i][j].g + itr.cost;
+                        else{
+                        gNew = cellDetails[i][j].g + itr.cost;
+                        }
+                        hNew = calculateHValue (itr.p.f, itr.p.s, dest);
+                        fNew = gNew + hNew;
+                        int vi=itr.p.f;
+                        int vj=itr.p.s;
+
+                        // if the adjacent node is not in the minHeap insert it
+                        //if it is present in the minHeap and the newer f is smaller than already entered f than update
+                        if(cellDetails[vi][vj].f > fNew){
+                            minHeap.push( make_pair(fNew, make_pair(vi, vj)));
+                            // Update the details of this cell
+                            cellDetails[vi][vj].f = fNew;
+                            cellDetails[vi][vj].g = gNew;
+                            cellDetails[vi][vj].h = hNew;
+                            cellDetails[vi][vj].parent_i = i;
+                            cellDetails[vi][vj].parent_j = j;
+                        }
+                    }
+                }
+            }
+        }
+
+        // When the destination cell is not found and the open
+        // list is empty, then we conclude that we failed to
+        // reach the destiantion cell. This may happen when the
+        // there is no way to destination cell (due to blockages)
+        if (foundDest == false)
+            printf("Failed to find the Destination Cell\n");
+
+        return;
+    }
 
 public:
     GraphAlgorithms(string src, string *des, int des_size, Map ob){
@@ -282,17 +512,29 @@ public:
         obj=ob;
     }
     void find_in_map(){
+        cout<<"\t\t\t\t   Source And Destination Coordiantes in Map"<<endl;
+        cout<<"\t\t\t\t@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n\n"<<endl;
         vector<vector<bool>> vis(canvas_size, vector<bool> (canvas_size, false));
         find_city(0, 0, vis);
-        cout<<"Source Coordinates : "<<source_coordinates.first<<" "<<source_coordinates.second<<" "<<endl;
+        cout<<"-----------------------------------------------------------"<<endl;
+        cout<<"Source :"<<endl;
+        cout<<"-----------------------------------------------------------"<<endl;
+        cout<<obj.cities_map[source]<<" Coordinates : ("<<source_coordinates.first<<","<<source_coordinates.second<<")"<<endl;
+        sort(des_coordinates.begin(), des_coordinates.end(), custom_sort);
+        cout<<"\n-----------------------------------------------------------"<<endl;
+        cout<<"Destinations : "<<endl;
+        cout<<"-----------------------------------------------------------"<<endl;
         for(int i=0; i<des_coordinates.size(); i++){
-            cout<<des_coordinates[i].name<<"  "<<des_coordinates[i].visit_no<<"    "<<des_coordinates[i].coordinates.f<<" "<<des_coordinates[i].coordinates.s<<endl;
+            cout<<i+1<<". "<<obj.cities_map[des_coordinates[i].name]<<" Coordinates : ("<<des_coordinates[i].coordinates.f<<","<<des_coordinates[i].coordinates.s<<")"<<endl;
         }
+        cout<<endl<<endl;
     }
     static bool custom_sort(des d1, des d2){
         return d1.visit_no<d2.visit_no;
     }
     void callDijkstra(){
+        cout<<"\t\t\t\t\t\tDijkstra Algorithm"<<endl;
+        cout<<"\t\t\t\t@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n\n"<<endl;
         pair<int, int> s=source_coordinates;
         string dijks[canvas_size][canvas_size];
         for(int i=0; i<canvas_size; i++){
@@ -302,7 +544,7 @@ public:
         }
         cout<<"-----------------------------------------------------------"<<endl;
         cout<<"Dijkstra Algorithm Efficient Cost : "<<endl;
-        sort(des_coordinates.begin(), des_coordinates.end(), custom_sort);
+        cout<<"-----------------------------------------------------------";
         for(int i=0; i<des_coordinates.size(); i++){
             DijkstraAlgorithmEfficientCost(s, des_coordinates[i].coordinates);
             vector<pair<int, int>> path;
@@ -312,23 +554,23 @@ public:
                 p=parent_cost[{p.f, p.s}];
             }
             reverse(path.begin(), path.end());
-            cout<<"Path : "<<endl;
+            cout<<"The Path is : "<<endl;
             for(int i=0; i<path.size(); i++){
                 if(i!=0 && i!=path.size()-1)
                 dijks[path[i].f][path[i].s]="@";
-                cout<<"{"<<path[i].f<<","<<path[i].s<<"}"<<" --> ";
+                cout<<"->("<<path[i].f<<","<<path[i].s<<")";
             }
-            cout<<endl<<endl;
-             cout<<"\n\n\t\t\t\tCity Map"<<endl<<endl;
-            cout<<"\t-----------------------------------------------------------"<<endl;
-            for(int i=0; i<canvas_size; i++){
-                cout<<"\t";
-                for(int j=0; j<canvas_size; j++){
-                    cout<<dijks[i][j]<<"  ";
-                }
-                cout<<endl<<endl;
-            }
-            cout<<"\t-----------------------------------------------------------"<<endl;
+//            cout<<endl<<endl;
+//             cout<<"\n\n\t\t\t\tCity Map"<<endl<<endl;
+//            cout<<"\t-----------------------------------------------------------"<<endl;
+//            for(int i=0; i<canvas_size; i++){
+//                cout<<"\t";
+//                for(int j=0; j<canvas_size; j++){
+//                    cout<<dijks[i][j]<<"  ";
+//                }
+//                cout<<endl<<endl;
+//            }
+//            cout<<"\t-----------------------------------------------------------"<<endl;
             s=des_coordinates[i].coordinates;
         }
 
@@ -342,6 +584,7 @@ public:
         s=source_coordinates;
         cout<<endl<<endl<<"-----------------------------------------------------------"<<endl;
         cout<<"Dijkstra Algorithm Efficient Time : "<<endl;
+        cout<<"-----------------------------------------------------------";
         for(int i=0; i<des_coordinates.size(); i++){
             DijkstraAlgorithmEfficientTime(s, des_coordinates[i].coordinates);
             vector<pair<int, int>> path;
@@ -351,28 +594,49 @@ public:
                 p=parent_time[{p.f, p.s}];
             }
             reverse(path.begin(), path.end());
-            cout<<"Path : "<<endl;
+            cout<<"The Path is : "<<endl;
             for(int i=0; i<path.size(); i++){
                 if(i!=0 && i!=path.size()-1)
                 dijks[path[i].f][path[i].s]="@";
-                cout<<"{"<<path[i].f<<","<<path[i].s<<"}"<<" --> ";
+                cout<<"->("<<path[i].f<<","<<path[i].s<<")";
             }
-            cout<<endl<<endl;
-             cout<<"\n\n\t\t\t\tCity Map"<<endl<<endl;
-            cout<<"\t-----------------------------------------------------------"<<endl;
-            for(int i=0; i<canvas_size; i++){
-                cout<<"\t";
-                for(int j=0; j<canvas_size; j++){
-                    cout<<dijks[i][j]<<"  ";
-                }
-                cout<<endl<<endl;
-            }
-            cout<<"\t-----------------------------------------------------------"<<endl;
-            s=des_coordinates[i].coordinates;
-        }
+//            cout<<endl<<endl;
+//             cout<<"\n\n\t\t\t\tCity Map"<<endl<<endl;
+//            cout<<"\t-----------------------------------------------------------"<<endl;
+//            for(int i=0; i<canvas_size; i++){
+//                cout<<"\t";
+//                for(int j=0; j<canvas_size; j++){
+//                    cout<<dijks[i][j]<<"  ";
+//                }
+//                cout<<endl<<endl;
+//            }
+//            cout<<"\t-----------------------------------------------------------"<<endl;
+              s=des_coordinates[i].coordinates;
+          }
+//        cout<<endl<<endl<<"-----------------------------------------------------------"<<endl;
+    }
+    void callAStar(){
+        cout<<endl<<endl<<"\n\t\t\t\t\t\tA Star Algorithm"<<endl;
+        cout<<"\t\t\t\t@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"<<endl;
         cout<<endl<<endl<<"-----------------------------------------------------------"<<endl;
+        cout<<"A star Algorithm Cost Efficient"<<endl;
+        cout<<"-----------------------------------------------------------"<<endl;
+        pair<int, int> src=source_coordinates;
+        for(int i=0; i<des_coordinates.size(); i++){
+            pair<int, int> dest = des_coordinates[i].coordinates;
+            aStarSearch(src, dest, true);
+        }
+        cout<<endl<<"-----------------------------------------------------------"<<endl;
+        cout<<"A star Algorithm Time Efficient"<<endl;
+        cout<<"-----------------------------------------------------------"<<endl;
+        src=source_coordinates;
+        for(int i=0; i<des_coordinates.size(); i++){
+            pair<int, int> dest = des_coordinates[i].coordinates;
+            aStarSearch(src, dest, false);
+        }
     }
 };
+
 
 void user_interface(Map obj){
     cout<<"Available Locations on Map : "<<endl;
@@ -420,6 +684,9 @@ void user_interface(Map obj){
     GraphAlgorithms gph(curr_location, destinations, no_of_destinations, obj);
     gph.find_in_map();
     gph.callDijkstra();
+    gph.callAStar();
+    cout<<"\n\n\t\t\t\t\t     Successfully Completed"<<endl;
+    cout<<"\t\t\t\t@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"<<endl;
 }
 int main()
 {
@@ -431,3 +698,4 @@ int main()
     user_interface(obj);
     return 0;
 }
+
