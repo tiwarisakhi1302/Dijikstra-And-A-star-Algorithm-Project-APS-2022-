@@ -287,6 +287,9 @@ class GraphAlgorithms{
         cout<<endl<<"Total Cost : "<<costTo[destin.f][destin.s]<<endl;
         cout<<"Total Time : "<<timeTo[destin.f][destin.s]<<endl;
     }
+
+
+
     //A* Star Algorithm
 
     double calculateHValue(int row, int col, pair<int, int> dest)
@@ -296,9 +299,11 @@ class GraphAlgorithms{
     // 	return ((double)sqrt ((row-dest.first)*(row-dest.first)
                     // 		+ (col-dest.second)*(col-dest.second)));
     }
+
+
     // A Utility Function to trace the path from the source
     // to destination
-    void tracePath(Astar cellDetails[][canvas_size], pair<int, int> dest, pair<int, int> src, int &jcost, int &jtime)
+    void tracePath(Astar cellDetails[][canvas_size], pair<int, int> dest, pair<int, int> src, int &jcost, int &jtime, string dijks[][canvas_size])
     {
         cout<<endl<<"From "<<obj.cities_map[obj.grid[src.f][src.s]]<<" To "<<obj.cities_map[obj.grid[dest.f][dest.s]]<<endl;
         int total_cost=0;
@@ -326,6 +331,8 @@ class GraphAlgorithms{
         {
             hops++;
             pair<int, pair<int, int>> p = Path.top();
+            if(obj.cities_map.find(obj.grid[p.s.f][p.s.s])==obj.cities_map.end())
+            dijks[p.s.f][p.s.s]="@";
             for(auto itr : obj.edges[s]){
                 if(itr.p==p.s){
                     total_cost+=itr.cost;
@@ -343,6 +350,8 @@ class GraphAlgorithms{
 //        cout<<endl<<"No of visited Places : "<<hops-1<<endl;
         return;
     }
+
+
     // A Utility Function to check whether destination cell has
     // been reached or not
     bool isDestination(int row, int col, pair<int, int> dest)
@@ -352,13 +361,14 @@ class GraphAlgorithms{
         else
             return (false);
     }
-    // template <typename T>
+
     class comp_f{
         public:
         int operator() (const pair<int, pair<int, int>>& p1, const pair<int, pair<int, int>>& p2){
             return p1.first > p2.first;
         }
     };
+
     // A Utility Function to check whether given cell (row, col)
     // is a valid cell or not.
     bool isValid(int row, int col)
@@ -372,7 +382,7 @@ class GraphAlgorithms{
     // A Function to find the shortest path between
     // a given source cell to a destination cell according
     // to A* Search Algorithm
-    void aStarSearch(pair<int, int> src, pair<int, int> dest, bool CostEfficient, int &jcost, int &jtime)
+    void aStarSearch(pair<int, int> src, pair<int, int> dest, bool CostEfficient, int &jcost, int &jtime, string dijks[][canvas_size])
     {
         // If the source is out of range
         if (isValid (src.first, src.second) == false || isValid (dest.first, dest.second) == false)
@@ -465,7 +475,7 @@ class GraphAlgorithms{
                         cellDetails[itr.p.f][itr.p.s].parent_i = i;
                         cellDetails[itr.p.f][itr.p.s].parent_j = j;
                         //cout<<"The destination cell is found\n";
-                        tracePath (cellDetails, dest, src, jcost, jtime);
+                        tracePath (cellDetails, dest, src, jcost, jtime, dijks);
                         foundDest = true;
                         return;
                     }
@@ -568,19 +578,20 @@ public:
                 dijks[path[i].f][path[i].s]="@";
                 cout<<"->("<<path[i].f<<","<<path[i].s<<")";
             }
-//            cout<<endl<<endl;
-//             cout<<"\n\n\t\t\t\tCity Map"<<endl<<endl;
-//            cout<<"\t-----------------------------------------------------------"<<endl;
-//            for(int i=0; i<canvas_size; i++){
-//                cout<<"\t";
-//                for(int j=0; j<canvas_size; j++){
-//                    cout<<dijks[i][j]<<"  ";
-//                }
-//                cout<<endl<<endl;
-//            }
-//            cout<<"\t-----------------------------------------------------------"<<endl;
             s=des_coordinates[i].coordinates;
         }
+
+        cout<<endl<<endl;
+        cout<<"\n\n\t\t\t    Path Highlighted"<<endl<<endl;
+        cout<<"\t-----------------------------------------------------------"<<endl;
+        for(int i=0; i<canvas_size; i++){
+            cout<<"\t";
+            for(int j=0; j<canvas_size; j++){
+                cout<<dijks[i][j]<<"  ";
+            }
+            cout<<endl<<endl;
+        }
+        cout<<"\t-----------------------------------------------------------"<<endl;
 
         cout<<endl;
         cout<<"-----------------------------------------------------------\n";
@@ -612,17 +623,6 @@ public:
                 dijks[path[i].f][path[i].s]="@";
                 cout<<"->("<<path[i].f<<","<<path[i].s<<")";
             }
-//            cout<<endl<<endl;
-//             cout<<"\n\n\t\t\t\tCity Map"<<endl<<endl;
-//            cout<<"\t-----------------------------------------------------------"<<endl;
-//            for(int i=0; i<canvas_size; i++){
-//                cout<<"\t";
-//                for(int j=0; j<canvas_size; j++){
-//                    cout<<dijks[i][j]<<"  ";
-//                }
-//                cout<<endl<<endl;
-//            }
-//            cout<<"\t-----------------------------------------------------------"<<endl;
               s=des_coordinates[i].coordinates;
           }
           cout<<endl;
@@ -630,6 +630,18 @@ public:
           cout<<"Journey Cost : "<<journey_cost_TE<<endl;
           cout<<"Journey Time : "<<journey_time_TE<<endl;
           cout<<"-----------------------------------------------------------\n";
+
+          cout<<endl<<endl;
+          cout<<"\n\t\t\t    Path Highlighted"<<endl<<endl;
+          cout<<"\t-----------------------------------------------------------"<<endl;
+          for(int i=0; i<canvas_size; i++){
+              cout<<"\t";
+              for(int j=0; j<canvas_size; j++){
+                  cout<<dijks[i][j]<<"  ";
+              }
+              cout<<endl<<endl;
+          }
+          cout<<"\t-----------------------------------------------------------"<<endl;
     }
     void callAStar(){
         cout<<endl<<endl<<"\n\t\t\t\t\t\tA Star Algorithm"<<endl;
@@ -637,12 +649,18 @@ public:
         cout<<endl<<endl<<"-----------------------------------------------------------"<<endl;
         cout<<"A star Algorithm Cost Efficient"<<endl;
         cout<<"-----------------------------------------------------------"<<endl;
+        string dijks[canvas_size][canvas_size];
+        for(int i=0; i<canvas_size; i++){
+            for(int j=0; j<canvas_size; j++){
+                dijks[i][j]=obj.grid[i][j];
+            }
+        }
         pair<int, int> src=source_coordinates;
         int journey_cost_CE=0, journey_cost_TE=0;
         int journey_time_CE=0, journey_time_TE=0;
         for(int i=0; i<des_coordinates.size(); i++){
             pair<int, int> dest = des_coordinates[i].coordinates;
-            aStarSearch(src, dest, true, journey_cost_CE, journey_time_CE);
+            aStarSearch(src, dest, true, journey_cost_CE, journey_time_CE, dijks);
             src=dest;
         }
         cout<<endl;
@@ -650,13 +668,30 @@ public:
         cout<<"Journey Cost : "<<journey_cost_CE<<endl;
         cout<<"Journey Time : "<<journey_time_CE<<endl;
         cout<<"-----------------------------------------------------------\n";
+
+        cout<<endl;
+        cout<<"\n\t\t\t    Path Highlighted"<<endl<<endl;
+        cout<<"\t-----------------------------------------------------------"<<endl;
+        for(int i=0; i<canvas_size; i++){
+            cout<<"\t";
+            for(int j=0; j<canvas_size; j++){
+                cout<<dijks[i][j]<<"  ";
+            }
+            cout<<endl<<endl;
+        }
+        for(int i=0; i<canvas_size; i++){
+            for(int j=0; j<canvas_size; j++){
+                dijks[i][j]=obj.grid[i][j];
+            }
+        }
+        cout<<"\t-----------------------------------------------------------"<<endl;
         cout<<endl<<"-----------------------------------------------------------"<<endl;
         cout<<"A star Algorithm Time Efficient"<<endl;
         cout<<"-----------------------------------------------------------"<<endl;
         src=source_coordinates;
         for(int i=0; i<des_coordinates.size(); i++){
             pair<int, int> dest = des_coordinates[i].coordinates;
-            aStarSearch(src, dest, false, journey_cost_TE, journey_time_TE);
+            aStarSearch(src, dest, false, journey_cost_TE, journey_time_TE, dijks);
             src=dest;
         }
         cout<<endl;
@@ -664,6 +699,17 @@ public:
         cout<<"Journey Cost : "<<journey_cost_TE<<endl;
         cout<<"Journey Time : "<<journey_time_TE<<endl;
         cout<<"-----------------------------------------------------------\n";
+
+        cout<<"\n\n\t\t\t    Path Highlighted"<<endl<<endl;
+        cout<<"\t-----------------------------------------------------------"<<endl;
+        for(int i=0; i<canvas_size; i++){
+            cout<<"\t";
+            for(int j=0; j<canvas_size; j++){
+                cout<<dijks[i][j]<<"  ";
+            }
+            cout<<endl<<endl;
+        }
+        cout<<"\t-----------------------------------------------------------"<<endl;
     }
 };
 
