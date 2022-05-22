@@ -1,4 +1,4 @@
-# APS-Project-2022-Even-Sem
+# Dijikstra-And-A-star-Algorithm-Project-APS-2022
 
 Dijkstra's algorithm 
 ------------------------------------------
