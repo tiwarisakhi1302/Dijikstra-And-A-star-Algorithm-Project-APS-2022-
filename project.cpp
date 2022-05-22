@@ -207,7 +207,7 @@ class GraphAlgorithms{
         }
     }
     //Dijkstra Algorithm
-    void DijkstraAlgorithmEfficientCost(pair<int, int> source, pair<int, int> destin){
+    void DijkstraAlgorithmEfficientCost(pair<int, int> source, pair<int, int> destin, int &jcost, int &jtime){
         int costTo[canvas_size][canvas_size]; //source -> different position -> cost
         int timeTo[canvas_size][canvas_size]; //source -> different position -> cost
         int vis[canvas_size][canvas_size];
@@ -241,11 +241,13 @@ class GraphAlgorithms{
                 }
             }
         }
+        jcost+=costTo[destin.f][destin.s];
+        jtime+=timeTo[destin.f][destin.s];
         cout<<endl<<endl<<"From "<<obj.cities_map[obj.grid[source.f][source.s]]<<" To "<<obj.cities_map[obj.grid[destin.f][destin.s]]<<endl;
         cout<<endl<<"Total Cost : "<<costTo[destin.f][destin.s]<<endl;
         cout<<"Total Time : "<<timeTo[destin.f][destin.s]<<endl;
     }
-    void DijkstraAlgorithmEfficientTime(pair<int, int> source, pair<int, int> destin){
+    void DijkstraAlgorithmEfficientTime(pair<int, int> source, pair<int, int> destin, int &jcost, int &jtime){
         int costTo[canvas_size][canvas_size]; //source -> different position -> cost
         int timeTo[canvas_size][canvas_size]; //source -> different position -> cost
         int vis[canvas_size][canvas_size];
@@ -279,6 +281,8 @@ class GraphAlgorithms{
                 }
             }
         }
+        jcost+=costTo[destin.f][destin.s];
+        jtime+=timeTo[destin.f][destin.s];
         cout<<endl<<endl<<"From "<<obj.cities_map[obj.grid[source.f][source.s]]<<" To "<<obj.cities_map[obj.grid[destin.f][destin.s]]<<endl;
         cout<<endl<<"Total Cost : "<<costTo[destin.f][destin.s]<<endl;
         cout<<"Total Time : "<<timeTo[destin.f][destin.s]<<endl;
@@ -294,7 +298,7 @@ class GraphAlgorithms{
     }
     // A Utility Function to trace the path from the source
     // to destination
-    void tracePath(Astar cellDetails[][canvas_size], pair<int, int> dest, pair<int, int> src)
+    void tracePath(Astar cellDetails[][canvas_size], pair<int, int> dest, pair<int, int> src, int &jcost, int &jtime)
     {
         cout<<endl<<"From "<<obj.cities_map[obj.grid[src.f][src.s]]<<" To "<<obj.cities_map[obj.grid[dest.f][dest.s]]<<endl;
         int total_cost=0;
@@ -332,6 +336,8 @@ class GraphAlgorithms{
             Path.pop();
             cout<<"->("<<p.s.f<<","<<p.s.s<<")";
         }
+        jcost+=total_cost;
+        jtime+=total_time;
         cout<<endl<<"Total Cost : "<<total_cost<<endl;
         cout<<"Total Time : "<<total_time<<endl;
 //        cout<<endl<<"No of visited Places : "<<hops-1<<endl;
@@ -366,7 +372,7 @@ class GraphAlgorithms{
     // A Function to find the shortest path between
     // a given source cell to a destination cell according
     // to A* Search Algorithm
-    void aStarSearch(pair<int, int> src, pair<int, int> dest, bool CostEfficient)
+    void aStarSearch(pair<int, int> src, pair<int, int> dest, bool CostEfficient, int &jcost, int &jtime)
     {
         // If the source is out of range
         if (isValid (src.first, src.second) == false || isValid (dest.first, dest.second) == false)
@@ -459,7 +465,7 @@ class GraphAlgorithms{
                         cellDetails[itr.p.f][itr.p.s].parent_i = i;
                         cellDetails[itr.p.f][itr.p.s].parent_j = j;
                         //cout<<"The destination cell is found\n";
-                        tracePath (cellDetails, dest, src);
+                        tracePath (cellDetails, dest, src, jcost, jtime);
                         foundDest = true;
                         return;
                     }
@@ -542,11 +548,13 @@ public:
                 dijks[i][j]=obj.grid[i][j];
             }
         }
+        int journey_cost_CE=0, journey_cost_TE=0;
+        int journey_time_CE=0, journey_time_TE=0;
         cout<<"-----------------------------------------------------------"<<endl;
         cout<<"Dijkstra Algorithm Efficient Cost : "<<endl;
         cout<<"-----------------------------------------------------------";
         for(int i=0; i<des_coordinates.size(); i++){
-            DijkstraAlgorithmEfficientCost(s, des_coordinates[i].coordinates);
+            DijkstraAlgorithmEfficientCost(s, des_coordinates[i].coordinates, journey_cost_CE, journey_time_CE);
             vector<pair<int, int>> path;
             pair<int, int> p=des_coordinates[i].coordinates;
             while(p.f!=-1 && p.s!=-1){
@@ -574,7 +582,11 @@ public:
             s=des_coordinates[i].coordinates;
         }
 
-
+        cout<<endl;
+        cout<<"-----------------------------------------------------------\n";
+        cout<<"Journey Cost : "<<journey_cost_CE<<endl;
+        cout<<"Journey Time : "<<journey_time_CE<<endl;
+        cout<<"-----------------------------------------------------------\n";
 
         for(int i=0; i<canvas_size; i++){
             for(int j=0; j<canvas_size; j++){
@@ -586,7 +598,7 @@ public:
         cout<<"Dijkstra Algorithm Efficient Time : "<<endl;
         cout<<"-----------------------------------------------------------";
         for(int i=0; i<des_coordinates.size(); i++){
-            DijkstraAlgorithmEfficientTime(s, des_coordinates[i].coordinates);
+            DijkstraAlgorithmEfficientTime(s, des_coordinates[i].coordinates, journey_cost_TE, journey_time_TE);
             vector<pair<int, int>> path;
             pair<int, int> p=des_coordinates[i].coordinates;
             while(p.f!=-1 && p.s!=-1){
@@ -613,7 +625,11 @@ public:
 //            cout<<"\t-----------------------------------------------------------"<<endl;
               s=des_coordinates[i].coordinates;
           }
-//        cout<<endl<<endl<<"-----------------------------------------------------------"<<endl;
+          cout<<endl;
+          cout<<"-----------------------------------------------------------\n";
+          cout<<"Journey Cost : "<<journey_cost_TE<<endl;
+          cout<<"Journey Time : "<<journey_time_TE<<endl;
+          cout<<"-----------------------------------------------------------\n";
     }
     void callAStar(){
         cout<<endl<<endl<<"\n\t\t\t\t\t\tA Star Algorithm"<<endl;
@@ -622,20 +638,32 @@ public:
         cout<<"A star Algorithm Cost Efficient"<<endl;
         cout<<"-----------------------------------------------------------"<<endl;
         pair<int, int> src=source_coordinates;
+        int journey_cost_CE=0, journey_cost_TE=0;
+        int journey_time_CE=0, journey_time_TE=0;
         for(int i=0; i<des_coordinates.size(); i++){
             pair<int, int> dest = des_coordinates[i].coordinates;
-            aStarSearch(src, dest, true);
+            aStarSearch(src, dest, true, journey_cost_CE, journey_time_CE);
             src=dest;
         }
+        cout<<endl;
+        cout<<"-----------------------------------------------------------\n";
+        cout<<"Journey Cost : "<<journey_cost_CE<<endl;
+        cout<<"Journey Time : "<<journey_time_CE<<endl;
+        cout<<"-----------------------------------------------------------\n";
         cout<<endl<<"-----------------------------------------------------------"<<endl;
         cout<<"A star Algorithm Time Efficient"<<endl;
         cout<<"-----------------------------------------------------------"<<endl;
         src=source_coordinates;
         for(int i=0; i<des_coordinates.size(); i++){
             pair<int, int> dest = des_coordinates[i].coordinates;
-            aStarSearch(src, dest, false);
+            aStarSearch(src, dest, false, journey_cost_TE, journey_time_TE);
             src=dest;
         }
+        cout<<endl;
+        cout<<"-----------------------------------------------------------\n";
+        cout<<"Journey Cost : "<<journey_cost_TE<<endl;
+        cout<<"Journey Time : "<<journey_time_TE<<endl;
+        cout<<"-----------------------------------------------------------\n";
     }
 };
 
